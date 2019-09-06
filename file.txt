@@ -1,0 +1,12 @@
+        HashMap<String, String> namings = new HashMap<>();
+        Arrays.asList(config.getRenaming().split(",")).stream().map( s -> s.split("="))
+                .map(a -> namings.put(a[0], a[1]));
+
+        List<Market> markets = client.getMarkets(Integer.MAX_VALUE);
+        log.info("uploading markets, size = {}", markets.size());
+
+        markets.stream().filter(mr -> !BNB.equals(mr.getBaseAssetSymbol())).map(m -> {
+            String[] base = m.getBaseAssetSymbol().split("-");
+            return new MarketCoin(base[0], base[1], m.getQuoteAssetSymbol(), Double.valueOf(m.getLotSize()),
+                    ofNullable(eMap.get(m.tickSize)).orElse(0));
+        }).forEach(c -> coins.put(ofNullable(namings.get(c.getCoin())).orElse(c.getCoin()), c));
